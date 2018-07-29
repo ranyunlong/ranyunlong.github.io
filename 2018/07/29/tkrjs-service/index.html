@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="奔跑的前端猿">
+    <title>tkrjs-service 服务类 - 奔跑的前端猿</title>
+    <meta name="author" content="Yunlong Ran">
+    
+        <meta name="keywords" content="冉云龙,奔跑的前端猿,">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Yunlong Ran","sameAs":["https://github.com/ranyunlong","mailto:549510622@qq.com"],"image":"my.jpg"},"articleBody":"服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。\n\n\n内置服务(1) ContextServiceContextService 是koa的ctx(context)上下文，通过注入该服务类。可以使用上下文的数据。\n例如在控制器中:12345678910import &#123; Controller, Get, ContextService  &#125; from \"tkrjs\";@Controller('/')export class IndexController&#123;    constructor(public context:ContextService)&#123;&#125;    @Get()    async index()&#123;        console.log(this.context)    &#125;&#125;\n在客户端请求时，就能在控制台中看到 context 对象的信息。\n(2) DbService系统内置的 DbService 服务类，使用数据库查询相应的数据。\n例如：\n在application/controllers/Index.ts中123456789101112131415161718192021222324import &#123; Controller, Get, DbService, TKServer  &#125; from \"tkrjs\";@Controller('/')export class IndexController&#123;    public db:TKServer.Db     constructor(        dbService:DbService // 注入DbService    )&#123;        this.db = dbService.createDb(&#123;            client:'mysql',             // 数据库类型                connection:&#123;                    host:'localhost',       // 主机地址                user:'root',            // 用户                password:'******',        // 密码                database:'web'          // 数据库名            &#125;        &#125;)    &#125;    @Get()    async index()&#123;        let data = await this.db('users').select()        return data    &#125;&#125;\n在客户端请求时，就能在页面中显示该数据库查询出的数据，不过在每个控制器中配置数据库的配置信息，太繁琐，可以在application/configs/index.ts中全局配置。\n在查询时可以简化数据库的配置操作：1234567891011121314151617import &#123; Controller, Get, DbService, TKServer  &#125; from \"tkrjs\";@Controller('/')export class IndexController&#123;    public db:TKServer.Db     constructor(        dbService:DbService // 注入DbService    )&#123;        // dbService 会自动在全局配置中得到该配置信息        this.db = dbService.createDb()    &#125;    @Get()    async index()&#123;        let data = await this.db('users').select()        return data    &#125;&#125;\n自定义服务自定义服务类，可以添加至 application/services/目录中。\n编写一个自定义服务：12345678910import &#123; TKServer &#125; from \"tkrjs\";export class YouService&#123;    constructor(        ctx:TKServer.Context,configs:TKServer.ServerOptionConfigs    )&#123;&#125;    youhandler()&#123;        // todo...something    &#125;&#125;\n框架在运行时会给自定义服务传入；两个参数\n\nctx 使用 TKServer.Context接口 传入http 的上下文\nconfigs 使用 TKServer.ServerOptionConfigs 接口 传入全局配置信息\n\n可根据业务需求添加相应的服务处理\n","dateCreated":"2018-07-29T23:12:40+08:00","dateModified":"2018-07-29T23:42:18+08:00","datePublished":"2018-07-29T23:12:40+08:00","description":"服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。","headline":"tkrjs-service 服务类","image":["service.jpg"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/07/29/tkrjs-service/"},"publisher":{"@type":"Organization","name":"Yunlong Ran","sameAs":["https://github.com/ranyunlong","mailto:549510622@qq.com"],"image":"my.jpg","logo":{"@type":"ImageObject","url":"my.jpg"}},"url":"http://localhost:4000/2018/07/29/tkrjs-service/","keywords":"tkrjs, tkrjs-cli","thumbnailUrl":"service.jpg"}</script>
+    <meta name="description" content="服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。">
+<meta name="keywords" content="tkrjs,tkrjs-cli">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="tkrjs-service 服务类">
+<meta property="og:url" content="http://localhost:4000/2018/07/29/tkrjs-service/index.html">
+<meta property="og:site_name" content="奔跑的前端猿">
+<meta property="og:description" content="服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2018-07-29T15:42:18.461Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tkrjs-service 服务类">
+<meta name="twitter:description" content="服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://localhost:4000/assets/images/my.jpg"/>
+    
+    
+        <meta property="og:image" content="http://localhost:4000/2018/07/29/tkrjs-service/service.jpg"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://localhost:4000/2018/07/29/tkrjs-service/service.jpg" />
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-1udptkpril81ozu8ifd8zpujn7ipu7lefxsiu5gxx0dpnzntdx6dusvki3ao.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">奔跑的前端猿</a>
+    </div>
+    
+        
+            <a  class="header-right-picture "
+                href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">Yunlong Ran</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>柠檬学院首席前端讲师</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link open-algolia-search"
+                             href="#search"
+                            
+                            title="搜索"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">搜索</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/ranyunlong" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:549510622@qq.com" target="_blank" rel="noopener" title="邮箱">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            tkrjs-service 服务类
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2018-07-29T23:12:40+08:00">
+	
+		    7月 29, 2018
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/tkrjs/">tkrjs</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>服务是给控制器提供相关服务的，服务依赖控制器注入实现，tkrjs内部简单的实现了这一功能，tkrjs 内置有相关服务类，也可自定义服务类。</p>
+<a id="more"></a>
+<h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#内置服务"><span class="toc-text">内置服务</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-ContextService"><span class="toc-text">(1) ContextService</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-DbService"><span class="toc-text">(2) DbService</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#自定义服务"><span class="toc-text">自定义服务</span></a></li></ol>
+<h3 id="内置服务"><a href="#内置服务" class="headerlink" title="内置服务"></a>内置服务</h3><h4 id="1-ContextService"><a href="#1-ContextService" class="headerlink" title="(1) ContextService"></a>(1) ContextService</h4><p>ContextService 是koa的<code>ctx</code>(context)上下文，通过注入该服务类。可以使用上下文的数据。</p>
+<p>例如在控制器中:<br><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Controller, Get, ContextService  &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span>(<span class="string">'/'</span>)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> IndexController&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"><span class="keyword">public</span> context:ContextService</span>)&#123;&#125;</span><br><span class="line">    <span class="meta">@Get</span>()</span><br><span class="line">    <span class="keyword">async</span> index()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="keyword">this</span>.context)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在客户端请求时，就能在控制台中看到 context 对象的信息。</p>
+<h4 id="2-DbService"><a href="#2-DbService" class="headerlink" title="(2) DbService"></a>(2) DbService</h4><p>系统内置的 <code>DbService</code> 服务类，使用数据库查询相应的数据。</p>
+<p>例如：</p>
+<p>在<code>application/controllers/Index.ts</code>中<br><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Controller, Get, DbService, TKServer  &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span>(<span class="string">'/'</span>)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> IndexController&#123;</span><br><span class="line">    <span class="keyword">public</span> db:TKServer.Db </span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">        dbService:DbService <span class="comment">// 注入DbService</span></span></span><br><span class="line"><span class="params">    </span>)&#123;</span><br><span class="line">        <span class="keyword">this</span>.db = dbService.createDb(&#123;</span><br><span class="line">            client:<span class="string">'mysql'</span>,             <span class="comment">// 数据库类型</span></span><br><span class="line">                connection:&#123;    </span><br><span class="line">                host:<span class="string">'localhost'</span>,       <span class="comment">// 主机地址</span></span><br><span class="line">                user:<span class="string">'root'</span>,            <span class="comment">// 用户</span></span><br><span class="line">                password:<span class="string">'******'</span>,        <span class="comment">// 密码</span></span><br><span class="line">                database:<span class="string">'web'</span>          <span class="comment">// 数据库名</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Get</span>()</span><br><span class="line">    <span class="keyword">async</span> index()&#123;</span><br><span class="line">        <span class="keyword">let</span> data = <span class="keyword">await</span> <span class="keyword">this</span>.db(<span class="string">'users'</span>).select()</span><br><span class="line">        <span class="keyword">return</span> data</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在客户端请求时，就能在页面中显示该数据库查询出的数据，不过在每个控制器中配置数据库的配置信息，太繁琐，可以在<code>application/configs/index.ts</code>中全局配置。</p>
+<p>在查询时可以简化数据库的配置操作：<br><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Controller, Get, DbService, TKServer  &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span>(<span class="string">'/'</span>)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> IndexController&#123;</span><br><span class="line">    <span class="keyword">public</span> db:TKServer.Db </span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">        dbService:DbService <span class="comment">// 注入DbService</span></span></span><br><span class="line"><span class="params">    </span>)&#123;</span><br><span class="line">        <span class="comment">// dbService 会自动在全局配置中得到该配置信息</span></span><br><span class="line">        <span class="keyword">this</span>.db = dbService.createDb()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Get</span>()</span><br><span class="line">    <span class="keyword">async</span> index()&#123;</span><br><span class="line">        <span class="keyword">let</span> data = <span class="keyword">await</span> <span class="keyword">this</span>.db(<span class="string">'users'</span>).select()</span><br><span class="line">        <span class="keyword">return</span> data</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="自定义服务"><a href="#自定义服务" class="headerlink" title="自定义服务"></a>自定义服务</h3><p>自定义服务类，可以添加至 <code>application/services/</code>目录中。</p>
+<p>编写一个自定义服务：<br><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; TKServer &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> YouService&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">        ctx:TKServer.Context,configs:TKServer.ServerOptionConfigs</span></span><br><span class="line"><span class="params">    </span>)&#123;&#125;</span><br><span class="line">    youhandler()&#123;</span><br><span class="line">        <span class="comment">// todo...something</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>框架在运行时会给自定义服务传入；两个参数</p>
+<ol>
+<li>ctx 使用 <code>TKServer.Context</code>接口 传入http 的上下文</li>
+<li>configs 使用 <code>TKServer.ServerOptionConfigs</code> 接口 传入全局配置信息</li>
+</ol>
+<p>可根据业务需求添加相应的服务处理</p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/tkrjs/">tkrjs</a> <a class="tag tag--primary tag--small t-link" href="/tags/tkrjs-cli/">tkrjs-cli</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2018/07/29/tkrjs/" data-tooltip="tkrjs" aria-label="上一篇: tkrjs">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-service/" title="分享到 Weibo">
+                    <i class="fa fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-service/&amp;title=tkrjs-service 服务类" title="分享到 QQ">
+                    <i class="fa fa-qq" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-service/" title="分享到 Qzone">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2018 Yunlong Ran. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2018/07/29/tkrjs/" data-tooltip="tkrjs" aria-label="上一篇: tkrjs">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-service/" title="分享到 Weibo">
+                    <i class="fa fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-service/&amp;title=tkrjs-service 服务类" title="分享到 QQ">
+                    <i class="fa fa-qq" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-service/" title="分享到 Qzone">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
+    <ul class="share-options">
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-service/">
+                    <i class="fa fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-service/&amp;title=tkrjs-service 服务类">
+                    <i class="fa fa-qq" aria-hidden="true"></i><span>分享到 QQ</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-service/">
+                    <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                </a>
+            </li>
+        
+    </ul>
+</div>
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">Yunlong Ran</h4>
+        
+            <div id="about-card-bio"><p>柠檬学院首席前端讲师</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                chongqing/china
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-yhuo2grt8r7qkqumzgjoglkfbicl1thukjgmla6jopu56zpcowfedi5zjcor.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

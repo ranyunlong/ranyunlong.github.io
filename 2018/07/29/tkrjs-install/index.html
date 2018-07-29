@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="奔跑的前端猿">
+    <title>tkrjs 安装 - 奔跑的前端猿</title>
+    <meta name="author" content="Yunlong Ran">
+    
+        <meta name="keywords" content="冉云龙,奔跑的前端猿,">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Yunlong Ran","sameAs":["https://github.com/ranyunlong","mailto:549510622@qq.com"],"image":"my.jpg"},"articleBody":"tkrjs 是开源项目，代码可通过github或npm获取，项目依赖typescript，使用前需先安装 typescript\n\n\n安装1npm i -g typescript\nnpm：\n12# 最新稳定版npm i tkrjs\ngithub:\n1git clone https://github.com/ranyunlong/tkrjs.git\n命令行工具 (CLI)安装tkrjs 的cli命令行工具\n1&gt; npm i -g tkrjs-cli\n创建项目检测cli工具安装：\n123# 查看tkr-cli的版本&gt; tkr -v&gt; 1.0.12\n若提示以上版本信息，表示安装成功\n创建项目命令：\n1234# trk init &lt;project&gt;&gt; trk init myApp&gt; cd myApp&gt; npm start\nserve 指令用于开发测试，使用ts-node-dev 实时更新\n1&gt; npm serve\n项目目录结构\n12345678910111213141516171819202122232425262728293031WEB部署目录（或者子目录）├─Application                应用目录│  ││  ├─Configs                 应用配置目录│  │  └─index.ts             配置文件│  │ │  ├─Controllers             控制器目录|  |  ├─IndexController.ts   Index控制器|  |  └─ApiController.ts     Api控制器|  |│  ├─model                   数据验证模型|  |  └─index.ts             数据验证规则文件|  ||  ├─public                  默认的静态文件目录|  |  ├─js                   browser js文件|  |  ├─css                  css 文件|  |  ├─img                  图片目录|  |  ├─uploads              文件上传目录|  |  └─index.html           html文件|  |  |  ├─services                自定义服务类目录|  |  └─index.ts             自定义服务类|  | │  └─app.ts                  应用入口文件  │         ├─Public                     静态文件目录├─index.ts                   应用启动文件├─.gitignore                 git文件├─package.json               包管理文件├─README.md                  自述文件└─tsconfig.json              Tslang配置文件\n项目配置使用tkrjs-cli创建项目之后可配置项目的基本配置,查看详细配置文档。\n应用入口文件配置应用的入口文件在application/app.ts,代码如下：\n1234567891011121314import &#123; TKServer, ServerMode &#125; from \"tkrjs\";import &#123; IndexController &#125; from \"./controllers/Index\";import &#123; configs &#125; from './configs'new TKServer(&#123;    keys:['app'],               // 用于session 签名key    configs,\t\t\t\t\t// 位于application/config/index.ts 项目配置文件    mode:ServerMode.dev,        // app 启动模式 dev有debug输出 使用ServerMode枚举参数    port:3000,                  // http 端口 默认3000    middlewares:[],             // 用于添加koa的第三方中间件 若非中间件使用的频率多 不建议使用中间件 可使用自定义服务类处理    controllers:[               // 控制器列表 用于处理路由的控制器 位于application/controllers目录下的控制器文件        IndexController    ]&#125;)\nmiddlewares 选项是一个数组，数组的成员是koa的中间件，任何第三方中间件都可以添加至tkrjs。所有的中间件都是在路由响应前执行完成。\n控制器所有控制器在application/controllers，项目默认添加了Index.ts 控制器。代码如下：\n\n控制器文档\n编写一个控制器，处理路由响应\n\n例如：\n在application/controllers 下添加users.ts\n123456789import &#123; Controller,Get,Res &#125; from \"tkrjs\";@Controller('/')export class UsersController&#123;  constructor()&#123;&#125;  @Get()  async index()&#123;    return '/users/api'  &#125;&#125;\n把控制器添加至app.ts，应用入口文件。\n1234567891011121314151617import &#123; TKServer, ServerMode &#125; from \"tkrjs\"import &#123; IndexController &#125; from \"./controllers/Index\"// 导入users 控制器import &#123; UsersController &#125; from \"./controllers/Index\"import &#123; configs &#125; from './configs'new TKServer(&#123;    keys:['app'],                   configs,\t\t\t\t\t    mode:ServerMode.dev,            port:3000,                      middlewares:[],                controllers:[                      IndexController,\t\t\t      \tUsersController\t\t\t//users控制器添加至此    ]&#125;)\n访问 http://localhost:3000/users ，即可查看到页面的返回信息。\n控制器的用法可查看 控制器文档\n服务在控制器里，可以通过构造函数注入相应的服务在构造函数中，这样我们就不必过度依赖中间件的使用。\n例如：\n注入系统内置的 DbService 服务类，使用数据库查询相应的数据。\n例如：\n在application/controllers/Index.ts中123456789101112131415161718192021222324import &#123; Controller, Get, DbService, TKServer  &#125; from \"tkrjs\";@Controller('/')export class IndexController&#123;    public db:TKServer.Db     constructor(        dbService:DbService // 注入DbService    )&#123;        this.db = dbService.createDb(&#123;            client:'mysql',             // 数据库类型                connection:&#123;                    host:'localhost',       // 主机地址                user:'root',            // 用户                password:'******',        // 密码                database:'web'          // 数据库名            &#125;        &#125;)    &#125;    @Get()    async index()&#123;        let data = await this.db('users').select()        return data    &#125;&#125;\n此时访问http://localhost:3000/,页面将显示数据库中的查询结果\n服务也可以自定义，学习自定义服务 请查阅服务文档。\n","dateCreated":"2018-07-29T23:12:40+08:00","dateModified":"2018-07-29T23:25:35+08:00","datePublished":"2018-07-29T23:12:40+08:00","description":"tkrjs 是开源项目，代码可通过github或npm获取，项目依赖typescript，使用前需先安装 typescript","headline":"tkrjs 安装","image":["start.jpg"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/07/29/tkrjs-install/"},"publisher":{"@type":"Organization","name":"Yunlong Ran","sameAs":["https://github.com/ranyunlong","mailto:549510622@qq.com"],"image":"my.jpg","logo":{"@type":"ImageObject","url":"my.jpg"}},"url":"http://localhost:4000/2018/07/29/tkrjs-install/","keywords":"tkrjs, tkrjs-cli","thumbnailUrl":"start.jpg"}</script>
+    <meta name="description" content="tkrjs 是开源项目，代码可通过github或npm获取，项目依赖typescript，使用前需先安装 typescript">
+<meta name="keywords" content="tkrjs,tkrjs-cli">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="tkrjs 安装">
+<meta property="og:url" content="http://localhost:4000/2018/07/29/tkrjs-install/index.html">
+<meta property="og:site_name" content="奔跑的前端猿">
+<meta property="og:description" content="tkrjs 是开源项目，代码可通过github或npm获取，项目依赖typescript，使用前需先安装 typescript">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2018-07-29T15:25:35.148Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tkrjs 安装">
+<meta name="twitter:description" content="tkrjs 是开源项目，代码可通过github或npm获取，项目依赖typescript，使用前需先安装 typescript">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://localhost:4000/assets/images/my.jpg"/>
+    
+    
+        <meta property="og:image" content="http://localhost:4000/2018/07/29/tkrjs-install/start.jpg"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://localhost:4000/2018/07/29/tkrjs-install/start.jpg" />
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-1udptkpril81ozu8ifd8zpujn7ipu7lefxsiu5gxx0dpnzntdx6dusvki3ao.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">奔跑的前端猿</a>
+    </div>
+    
+        
+            <a  class="header-right-picture "
+                href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">Yunlong Ran</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>柠檬学院首席前端讲师</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link open-algolia-search"
+                             href="#search"
+                            
+                            title="搜索"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">搜索</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/ranyunlong" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:549510622@qq.com" target="_blank" rel="noopener" title="邮箱">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            tkrjs 安装
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2018-07-29T23:12:40+08:00">
+	
+		    7月 29, 2018
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/tkrjs/">tkrjs</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>tkrjs 是开源项目，代码可通过github或npm获取，项目依赖<code>typescript</code>，使用前需先安装 <code>typescript</code></p>
+<a id="more"></a>
+<h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装"><span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#命令行工具-CLI"><span class="toc-text">命令行工具 (CLI)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建项目"><span class="toc-text">创建项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#项目配置"><span class="toc-text">项目配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#应用入口文件配置"><span class="toc-text">应用入口文件配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#控制器"><span class="toc-text">控制器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#服务"><span class="toc-text">服务</span></a></li></ol>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i -g typescript</span><br></pre></td></tr></table></figure>
+<p><strong>npm：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 最新稳定版</span><br><span class="line">npm i tkrjs</span><br></pre></td></tr></table></figure>
+<p><strong>github:</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/ranyunlong/tkrjs.git</span><br></pre></td></tr></table></figure>
+<h3 id="命令行工具-CLI"><a href="#命令行工具-CLI" class="headerlink" title="命令行工具 (CLI)"></a>命令行工具 (CLI)</h3><p>安装tkrjs 的cli命令行工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; npm i -g tkrjs-cli</span><br></pre></td></tr></table></figure>
+<h3 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h3><p><strong>检测cli工具安装：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 查看tkr-cli的版本</span><br><span class="line"><span class="meta">&gt;</span> tkr -v</span><br><span class="line"><span class="meta">&gt;</span> 1.0.12</span><br></pre></td></tr></table></figure>
+<p>若提示以上版本信息，表示安装成功</p>
+<p><strong>创建项目命令：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> trk init &lt;project&gt;</span><br><span class="line"><span class="meta">&gt;</span> trk init myApp</span><br><span class="line"><span class="meta">&gt;</span> cd myApp</span><br><span class="line"><span class="meta">&gt;</span> npm start</span><br></pre></td></tr></table></figure>
+<p>serve 指令用于开发测试，使用ts-node-dev 实时更新</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> npm serve</span><br></pre></td></tr></table></figure>
+<p><strong>项目目录结构</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">WEB部署目录（或者子目录）</span><br><span class="line">├─Application                应用目录</span><br><span class="line">│  │</span><br><span class="line">│  ├─Configs                 应用配置目录</span><br><span class="line">│  │  └─index.ts             配置文件</span><br><span class="line">│  │ </span><br><span class="line">│  ├─Controllers             控制器目录</span><br><span class="line">|  |  ├─IndexController.ts   Index控制器</span><br><span class="line">|  |  └─ApiController.ts     Api控制器</span><br><span class="line">|  |</span><br><span class="line">│  ├─model                   数据验证模型</span><br><span class="line">|  |  └─index.ts             数据验证规则文件</span><br><span class="line">|  |</span><br><span class="line">|  ├─public                  默认的静态文件目录</span><br><span class="line">|  |  ├─js                   browser js文件</span><br><span class="line">|  |  ├─css                  css 文件</span><br><span class="line">|  |  ├─img                  图片目录</span><br><span class="line">|  |  ├─uploads              文件上传目录</span><br><span class="line">|  |  └─index.html           html文件</span><br><span class="line">|  |  </span><br><span class="line">|  ├─services                自定义服务类目录</span><br><span class="line">|  |  └─index.ts             自定义服务类</span><br><span class="line">|  | </span><br><span class="line">│  └─app.ts                  应用入口文件  </span><br><span class="line">│         </span><br><span class="line">├─Public                     静态文件目录</span><br><span class="line">├─index.ts                   应用启动文件</span><br><span class="line">├─.gitignore                 git文件</span><br><span class="line">├─package.json               包管理文件</span><br><span class="line">├─README.md                  自述文件</span><br><span class="line">└─tsconfig.json              Tslang配置文件</span><br></pre></td></tr></table></figure>
+<h3 id="项目配置"><a href="#项目配置" class="headerlink" title="项目配置"></a>项目配置</h3><p>使用<code>tkrjs-cli</code>创建项目之后可配置项目的基本配置,<a href="https://github.com/ranyunlong/tkrjs/blob/master/docs/config.md" target="_blank" rel="noopener">查看详细配置文档</a>。</p>
+<h3 id="应用入口文件配置"><a href="#应用入口文件配置" class="headerlink" title="应用入口文件配置"></a>应用入口文件配置</h3><p>应用的入口文件在<code>application/app.ts</code>,代码如下：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; TKServer, ServerMode &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; IndexController &#125; <span class="keyword">from</span> <span class="string">"./controllers/Index"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; configs &#125; <span class="keyword">from</span> <span class="string">'./configs'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> TKServer(&#123;</span><br><span class="line">    keys:[<span class="string">'app'</span>],               <span class="comment">// 用于session 签名key</span></span><br><span class="line">    configs,					<span class="comment">// 位于application/config/index.ts 项目配置文件</span></span><br><span class="line">    mode:ServerMode.dev,        <span class="comment">// app 启动模式 dev有debug输出 使用ServerMode枚举参数</span></span><br><span class="line">    port:<span class="number">3000</span>,                  <span class="comment">// http 端口 默认3000</span></span><br><span class="line">    middlewares:[],             <span class="comment">// 用于添加koa的第三方中间件 若非中间件使用的频率多 不建议使用中间件 可使用自定义服务类处理</span></span><br><span class="line">    controllers:[               <span class="comment">// 控制器列表 用于处理路由的控制器 位于application/controllers目录下的控制器文件</span></span><br><span class="line">        IndexController</span><br><span class="line">    ]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><code>middlewares</code> 选项是一个数组，数组的成员是koa的中间件，任何第三方中间件都可以添加至<code>tkrjs</code>。所有的中间件都是在路由响应前执行完成。</p>
+<h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><p>所有控制器在<code>application/controllers</code>，项目默认添加了<code>Index.ts</code> 控制器。<br>代码如下：</p>
+<ol>
+<li><a href="https://github.com/ranyunlong/tkrjs/blob/master/docs/controller.md" target="_blank" rel="noopener">控制器文档</a></li>
+<li>编写一个控制器，处理路由响应</li>
+</ol>
+<p>例如：</p>
+<p>在<code>application/controllers</code> 下添加users.ts</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Controller,Get,Res &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"><span class="meta">@Controller</span>(<span class="string">'/'</span>)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> UsersController&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">  <span class="meta">@Get</span>()</span><br><span class="line">  <span class="keyword">async</span> index()&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'/users/api'</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>把控制器添加至<code>app.ts</code>，应用入口文件。</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; TKServer, ServerMode &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span></span><br><span class="line"><span class="keyword">import</span> &#123; IndexController &#125; <span class="keyword">from</span> <span class="string">"./controllers/Index"</span></span><br><span class="line"><span class="comment">// 导入users 控制器</span></span><br><span class="line"><span class="keyword">import</span> &#123; UsersController &#125; <span class="keyword">from</span> <span class="string">"./controllers/Index"</span></span><br><span class="line"><span class="keyword">import</span> &#123; configs &#125; <span class="keyword">from</span> <span class="string">'./configs'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> TKServer(&#123;</span><br><span class="line">    keys:[<span class="string">'app'</span>],               </span><br><span class="line">    configs,					</span><br><span class="line">    mode:ServerMode.dev,        </span><br><span class="line">    port:<span class="number">3000</span>,                  </span><br><span class="line">    middlewares:[],            </span><br><span class="line">    controllers:[              </span><br><span class="line">        IndexController,			</span><br><span class="line">      	UsersController			<span class="comment">//users控制器添加至此</span></span><br><span class="line">    ]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>访问 <a href="http://localhost:3000/users">http://localhost:3000/users</a> ，即可查看到页面的返回信息。</p>
+<p>控制器的用法可查看 <a href="https://github.com/ranyunlong/tkrjs/blob/master/docs/controller.md" target="_blank" rel="noopener">控制器文档</a></p>
+<h3 id="服务"><a href="#服务" class="headerlink" title="服务"></a>服务</h3><p>在控制器里，可以通过构造函数注入相应的服务在构造函数中，这样我们就不必过度依赖中间件的使用。</p>
+<p>例如：</p>
+<p>注入系统内置的 <code>DbService</code> 服务类，使用数据库查询相应的数据。</p>
+<p>例如：</p>
+<p>在<code>application/controllers/Index.ts</code>中<br><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Controller, Get, DbService, TKServer  &#125; <span class="keyword">from</span> <span class="string">"tkrjs"</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span>(<span class="string">'/'</span>)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> IndexController&#123;</span><br><span class="line">    <span class="keyword">public</span> db:TKServer.Db </span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">        dbService:DbService <span class="comment">// 注入DbService</span></span></span><br><span class="line"><span class="params">    </span>)&#123;</span><br><span class="line">        <span class="keyword">this</span>.db = dbService.createDb(&#123;</span><br><span class="line">            client:<span class="string">'mysql'</span>,             <span class="comment">// 数据库类型</span></span><br><span class="line">                connection:&#123;    </span><br><span class="line">                host:<span class="string">'localhost'</span>,       <span class="comment">// 主机地址</span></span><br><span class="line">                user:<span class="string">'root'</span>,            <span class="comment">// 用户</span></span><br><span class="line">                password:<span class="string">'******'</span>,        <span class="comment">// 密码</span></span><br><span class="line">                database:<span class="string">'web'</span>          <span class="comment">// 数据库名</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Get</span>()</span><br><span class="line">    <span class="keyword">async</span> index()&#123;</span><br><span class="line">        <span class="keyword">let</span> data = <span class="keyword">await</span> <span class="keyword">this</span>.db(<span class="string">'users'</span>).select()</span><br><span class="line">        <span class="keyword">return</span> data</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>此时访问<a href="http://localhost:3000/">http://localhost:3000/</a>,页面将显示数据库中的查询结果</p>
+<p>服务也可以自定义，学习自定义服务 请查阅<a href="https://github.com/ranyunlong/tkrjs/blob/master/docs/service.md" target="_blank" rel="noopener">服务文档</a>。</p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/tkrjs/">tkrjs</a> <a class="tag tag--primary tag--small t-link" href="/tags/tkrjs-cli/">tkrjs-cli</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2018/07/29/tkrjs-config/" data-tooltip="tkrjs 配置" aria-label="下一篇: tkrjs 配置">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-install/" title="分享到 Weibo">
+                    <i class="fa fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-install/&amp;title=tkrjs 安装" title="分享到 QQ">
+                    <i class="fa fa-qq" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-install/" title="分享到 Qzone">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2018 Yunlong Ran. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2018/07/29/tkrjs-config/" data-tooltip="tkrjs 配置" aria-label="下一篇: tkrjs 配置">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-install/" title="分享到 Weibo">
+                    <i class="fa fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-install/&amp;title=tkrjs 安装" title="分享到 QQ">
+                    <i class="fa fa-qq" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-install/" title="分享到 Qzone">
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
+    <ul class="share-options">
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://localhost:4000/2018/07/29/tkrjs-install/">
+                    <i class="fa fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://connect.qq.com/widget/shareqq/index.html?url=http://localhost:4000/2018/07/29/tkrjs-install/&amp;title=tkrjs 安装">
+                    <i class="fa fa-qq" aria-hidden="true"></i><span>分享到 QQ</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://localhost:4000/2018/07/29/tkrjs-install/">
+                    <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                </a>
+            </li>
+        
+    </ul>
+</div>
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/my.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">Yunlong Ran</h4>
+        
+            <div id="about-card-bio"><p>柠檬学院首席前端讲师</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                chongqing/china
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-yhuo2grt8r7qkqumzgjoglkfbicl1thukjgmla6jopu56zpcowfedi5zjcor.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>
