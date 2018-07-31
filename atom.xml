@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://ranyunlong.com/"/>
-  <updated>2018-07-31T18:53:36.905Z</updated>
+  <updated>2018-07-31T18:56:59.746Z</updated>
   <id>https://ranyunlong.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://ranyunlong.com/2018/08/01/create-electron-project/"/>
     <id>https://ranyunlong.com/2018/08/01/create-electron-project/</id>
     <published>2018-07-31T18:42:39.000Z</published>
-    <updated>2018-07-31T18:53:36.905Z</updated>
+    <updated>2018-07-31T18:56:59.746Z</updated>
     
     <content type="html"><![CDATA[<!--toc--><p>如果你可以建一个网站，你就可以建一个桌面应用程序。 <a href="https://electronjs.org/" target="_blank" rel="noopener">Electron</a> 是一个使用 JavaScript, HTML 和 CSS 等 Web 技术创建原生程序的框架，它负责比较难搞的部分，你只需把精力放在你的应用的核心上即可。<br><a id="more"></a></p><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p><code>@lemonc/cli</code> 是一个快速构建electron项目的脚手架，它采用的是webpack构建，electron也比较适合单页面应用<code>spa</code>的应用开发，所以，<code>@lemonc/cli</code> 使用了webpack 当然也不会少了<a href="https://cn.vuejs.org/" target="_blank" rel="noopener">vue</a> 和 <a href="https://reactjs.org/" target="_blank" rel="noopener">react</a>。项目集成了vue和react。使用<code>electron-builder</code>来打包应用。</p><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> npm i - g @lemonc/cli</span><br></pre></td></tr></table></figure><h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>创建vue脚手架应用</p><pre><code class="shell"><span class="meta">&gt;</span> lemonc init vue myApp</code></pre><p>创建react脚手架应用</p><pre><code class="shell"><span class="meta">&gt;</span> lemonc init react myApp</code></pre>]]></content>
     
